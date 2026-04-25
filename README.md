@@ -185,6 +185,22 @@ These are saved under `OUT_DIR` (or current folder if `OUT_DIR = ""`).
 
 ## 8. Common Issues
 
+### Results are slightly different each run
+
+You may see different metrics, probabilities, and final recommendations each time you run the pipeline. This is normal for deep-learning workflows.
+
+Main reasons:
+
+- Random weight initialization and mini-batch training dynamics
+- Stochastic regularization (Dropout, SpatialDropout, GaussianNoise)
+- Monte Carlo Dropout inference in Model 2 (`training=True` over multiple passes)
+- Non-deterministic low-level math kernels (especially on GPU/parallel execution)
+
+Notes:
+
+- This script already sets TensorFlow and NumPy seeds, which improves consistency.
+- Even with seeds, exact bit-for-bit reproducibility is not always guaranteed across different hardware/OS/library versions.
+
 ### TensorFlow install errors
 
 Try:
