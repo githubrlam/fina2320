@@ -17,7 +17,28 @@ Main script:
 
 ---
 
-## 1. Prerequisites
+## 1. Download or Clone
+
+If you are starting from GitHub, get the code first:
+
+### Clone with Git
+
+```bash
+git clone https://github.com/githubrlam/fina2320.git
+cd fina2320
+```
+
+### Or download as ZIP
+
+1. Open the repository page: https://github.com/githubrlam/fina2320.git
+2. Click the green Code button.
+3. Choose Download ZIP.
+4. Extract the ZIP file to a folder on your computer.
+5. Open a terminal in the extracted repository root.
+
+---
+
+## 2. Prerequisites
 
 - macOS, Linux, or Windows
 - Python 3.10 or 3.11 recommended
@@ -32,7 +53,7 @@ python3 --version
 
 ---
 
-## 2. Project Structure (Expected)
+## 3. Project Structure (Expected)
 
 The script expects these CSV files:
 
@@ -44,20 +65,19 @@ Expected repository structure:
 
 ```text
 repo-root/
-  files/
-    japan_gaming_pipeline_new.py
-    nitendo.csv
-    sony.csv
-    capcom.csv
+  japan_gaming_pipeline_new.py
+  nitendo.csv
+  sony.csv
+  capcom.csv
 ```
 
 If your CSV files are somewhere else, set `DATA_DIR` accordingly (see Section 4).
 
 ---
 
-## 3. Environment Setup
+## 4. Environment Setup
 
-After downloading from GitHub, open a terminal at the repository root.
+After cloning or downloading from GitHub, open a terminal at the repository root.
 
 Create and activate a virtual environment:
 
@@ -89,9 +109,9 @@ pip install "tensorflow==2.16.*" "tf-keras==2.16.*"
 
 ---
 
-## 4. Configure Paths (Important)
+## 5. Configure Paths (Important)
 
-Open `files/japan_gaming_pipeline_new.py` and check:
+Open `japan_gaming_pipeline_new.py` and check:
 
 ```python
 DATA_DIR = ""
@@ -105,29 +125,38 @@ What these mean:
 
 Because both are empty strings by default, the script reads/writes relative to your current working directory.
 
-If you set paths manually, set it according to your repository structure and keep the trailing slash.
+If you keep the defaults, run the script from the repository root so the CSV files are found automatically.
+
+If you want to run from another folder, set the repository root explicitly:
+
+```python
+DATA_DIR = "/full/path/to/fina2320/"
+OUT_DIR  = "/full/path/to/fina2320/"
+```
+
+Keep the trailing slash.
 
 ---
 
-## 5. How To Run
+## 6. How To Run
 
 ### Option A (recommended with current defaults)
-
-```bash
-python "file_path/japan_gaming_pipeline_new.py"
-```
-
-### Option B (run from inside `file` folder)
-
-Use this if your terminal is already inside the script folder.
 
 ```bash
 python japan_gaming_pipeline_new.py
 ```
 
+### Option B (run from another folder after setting paths)
+
+Use this only if you changed `DATA_DIR` and `OUT_DIR` to the correct repository path.
+
+```bash
+python /full/path/to/japan_gaming_pipeline_new.py
+```
+
 ---
 
-## 6. What The Script Produces
+## 7. What The Script Produces
 
 Console output includes:
 
@@ -154,7 +183,7 @@ These are saved under `OUT_DIR` (or current folder if `OUT_DIR = ""`).
 
 ---
 
-## 7. Common Issues
+## 8. Common Issues
 
 ### TensorFlow install errors
 
@@ -179,20 +208,19 @@ pip install "tensorflow==2.16.*" "tf-keras==2.16.*"
 
 ---
 
-## 8. Quick Start (Copy/Paste)
+## 9. Quick Start (Copy/Paste)
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 pip install numpy pandas scikit-learn matplotlib tensorflow tf-keras
-cd "file_path"  # file_path depends on your case
-python "japan_gaming_pipeline_new.py"
+python japan_gaming_pipeline_new.py
 ```
 
 ---
 
-## 9. Optional: Freeze Dependencies
+## 10. Optional: Freeze Dependencies
 
 After successful setup:
 
