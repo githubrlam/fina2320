@@ -1,251 +1,200 @@
-# Japan Gaming Stocks Neural Network Pipeline
+# Japanese Gaming Stock Forecasting
 
-This project trains and evaluates two deep-learning models on daily Japanese gaming stock data:
+A **FINA2320 Investments and Portfolio Analysis group project** exploring how machine learning can turn historical share prices and trading activity into return forecasts and buy, hold or sell signals.
 
-- Model 1: TCN regression for 21-day and 63-day forward log-returns
-- Model 2: Micro-Transformer classifier for SELL / HOLD / BUY signals
+The project studies **Nintendo, Sony and Capcom** using approximately ten years of daily market data, from April 2016 to April 2026. It covers data preparation, model development, evaluation and a visual dashboard.
 
-Target stocks:
+[Overview](#what-the-models-do) · [Charts and results](#charts-and-results) · [Run the project](#run-the-project) · [Technical details](#technical-details)
 
-- Nintendo (7974)
-- Sony (6758)
-- Capcom (9697)
+## What the models do
 
-Main script:
+The two models answer different questions:
 
-- `japan_gaming_pipeline_new.py`
+| Question | Approach | Output |
+| --- | --- | --- |
+| How much might a share price change? | A temporal convolutional network, which learns patterns in historical sequences | Return forecasts and implied prices for 21 and 63 trading days ahead |
+| Is a rise, a fall or a relatively small change more likely? | A Transformer encoder, which learns relationships within a sequence | BUY, HOLD and SELL scores for the next 21 trading days |
 
----
+Twenty-one trading days is roughly one month; 63 is roughly three months. The classification labels use thresholds corresponding to approximately a 3% rise or fall, with smaller movements labelled HOLD.
 
-## 1. Download or Clone
+The workflow is straightforward: **prepare historical prices and volumes, calculate indicators of market behaviour, train the models, evaluate their predictions, and present the outputs.**
 
-If you are starting from GitHub, get the code first:
+The main script is [`japan_gaming_pipeline_new.py`](japan_gaming_pipeline_new.py). The charts below are **saved outputs from an April 2026 run**, rather than live market updates.
 
-### Clone with Git
+## Charts and results
+
+### 1. Understanding the historical data
+
+![Historical share prices and trading volumes for Nintendo, Sony and Capcom from April 2016 to April 2026](rpt_m1_01_price_history.png)
+
+The top row shows share prices in Japanese yen; the bottom row shows trading volumes. Dashed lines smooth short-term movements.
+
+The companies share an industry, but their price paths and trading activity differ. Each panel has its own vertical scale, so compare changes over time rather than line heights across companies.
+
+### 2. Combining the forecasts and signals
+
+![Dashboard showing observed prices, forecast prices and buy hold sell model scores for Nintendo, Sony and Capcom](rpt_m2_05_dashboard.png)
+
+The dashboard uses closing prices from **17 April 2026**:
+
+- **Top row:** Observed prices alongside the first model's implied prices for 21 and 63 trading days ahead.
+- **Bottom row:** The second model's SELL, HOLD and BUY scores. The highest-scoring category becomes the displayed label.
+
+A BUY label can appear with a score below 50%, because it is simply the largest of three scores. The score is not a verified probability of a profitable trade. Error bars show variation across repeated model predictions, not guaranteed bounds on future returns.
+
+### 3. Comparing forecasts with actual outcomes
+
+![Predicted and actual future log returns for each stock over 21 and 63 trading day horizons](rpt_m1_02_predictions.png)
+
+The **solid black line** shows the return that actually occurred in the test period. The **coloured dashed line** shows the forecast. Positive values represent rises; negative values represent falls. The vertical axis uses log-returns, a mathematical measure of price change.
+
+Some forecasts identify the direction but miss the size of a move. Others remain close to zero while actual returns change substantially.
+
+| Measure in the chart | What it means |
+| --- | --- |
+| Mean absolute error (MAE) | Average size of the forecast error; smaller is better |
+| Coefficient of determination (R²) | How well predictions explain variation in actual returns; negative values indicate performance worse than a constant prediction equal to the test-period average |
+| Directional accuracy | How often the predicted and actual returns have the same positive or negative sign |
+
+The saved Sony results have negative R² values. Although some figure annotations describe directional accuracy above 50% as evidence of value, that alone does not establish a useful trading strategy.
+
+### 4. Evaluating buy, hold and sell classifications
+
+![Classification accuracy across two chronological evaluation periods for Nintendo, Sony and Capcom](rpt_m2_01_cv_accuracy.png)
+
+Each "fold" is an evaluation period: the model trains on earlier data and is tested on later data. Solid bars show classification accuracy. Hatched bars show accuracy for predictions with above-median model scores; this subset does not consistently perform better.
+
+| Company | Average classification accuracy across the two periods |
+| --- | ---: |
+| Nintendo | 36.7% |
+| Sony | 42.4% |
+| Capcom | 45.5% |
+
+The red 33.3% line represents choosing uniformly at random among three labels. Since labels are not equally common, exceeding that line alone is insufficient; results should also be compared with always choosing the most common label.
+
+### What this demonstrates
+
+The project combines financial data analysis, regression, classification and visual communication. It is a **research prototype**: the saved results show both potential patterns and substantial prediction errors. They do not establish a reliable trading strategy.
+
+Further work includes stronger baseline comparisons, more rigorous time-series evaluation and testing after trading costs.
+
+## Run the project
+
+### Requirements
+
+Python 3.10 or 3.11 is recommended. The repository includes the three required comma-separated values (CSV) data files.
+
+### Download and install
 
 ```bash
 git clone https://github.com/githubrlam/fina2320.git
 cd fina2320
-```
-
-### Or download as ZIP
-
-1. Open the repository page: https://github.com/githubrlam/fina2320.git
-2. Click the green Code button.
-3. Choose Download ZIP.
-4. Extract the ZIP file to a folder on your computer.
-5. Open a terminal in the extracted repository root.
-
----
-
-## 2. Prerequisites
-
-- macOS, Linux, or Windows
-- Python 3.10 or 3.11 recommended
-- pip
-- Optional but recommended: virtual environment support (`venv`)
-
-Check your Python version:
-
-```bash
-python3 --version
-```
-
----
-
-## 3. Project Structure (Expected)
-
-The script expects these CSV files:
-
-- `nitendo.csv`
-- `sony.csv`
-- `capcom.csv`
-
-Expected repository structure:
-
-```text
-repo-root/
-  japan_gaming_pipeline_new.py
-  nitendo.csv
-  sony.csv
-  capcom.csv
-```
-
-If your CSV files are somewhere else, set `DATA_DIR` accordingly (see Section 4).
-
----
-
-## 4. Environment Setup
-
-After cloning or downloading from GitHub, open a terminal at the repository root.
-
-Create and activate a virtual environment:
-
-```bash
 python3 -m venv .venv
 source .venv/bin/activate
-```
-
-Upgrade pip:
-
-```bash
 python -m pip install --upgrade pip
-```
-
-Install dependencies:
-
-```bash
 pip install numpy pandas scikit-learn matplotlib tensorflow tf-keras
 ```
 
-Notes:
+Alternatively, use **Code → Download ZIP** on GitHub.
 
-- `tf-keras` is imported in the script as `tf_keras`.
-- If TensorFlow installation fails on your machine, install a specific version such as:
+On Windows, create and activate the environment with `py -m venv .venv` and `.\.venv\Scripts\Activate.ps1`, then run the package-installation commands above.
 
-```bash
-pip install "tensorflow==2.16.*" "tf-keras==2.16.*"
-```
+### Check paths and run
 
----
+Keep the script alongside [`nitendo.csv`](nitendo.csv), [`sony.csv`](sony.csv) and [`capcom.csv`](capcom.csv). The spelling of `nitendo.csv` matches the existing script.
 
-## 5. Configure Paths (Important)
-
-Open `japan_gaming_pipeline_new.py` and check:
+The default settings read inputs and save charts in the current working directory:
 
 ```python
 DATA_DIR = ""
-OUT_DIR  = ""
+OUT_DIR = ""
 ```
 
-What these mean:
+Then run:
 
-- `DATA_DIR`: folder prefix for input CSV files
-- `OUT_DIR`: folder prefix for output figures
+```bash
+python japan_gaming_pipeline_new.py
+```
 
-Because both are empty strings by default, the script reads/writes relative to your current working directory.
+The script trains both models, prints evaluation measures and forecasts, and writes the report images. Rerunning replaces images with the same filenames. Training can take time without a graphics processor.
 
-If you keep the defaults, run the script from the repository root so the CSV files are found automatically.
-
-If you want to run from another folder, set the repository root explicitly:
+For another folder, set explicit paths in the script and keep the trailing slash:
 
 ```python
 DATA_DIR = "/full/path/to/fina2320/"
-OUT_DIR  = "/full/path/to/fina2320/"
+OUT_DIR = "/full/path/to/results/"
 ```
 
-Keep the trailing slash.
+## Technical details
 
----
+<details>
+<summary>Model architectures and evaluation</summary>
 
-## 6. How To Run
+**Model 1: Temporal convolutional network (TCN) regression**
 
-### Option A (recommended with current defaults)
+- Uses a 120-observation look-back window and 23 price/volume-derived features.
+- Learns sequential patterns using causal, dilated convolutions.
+- Predicts 21- and 63-trading-day forward log-returns through two output heads.
+- Evaluates mean absolute error, R² and directional accuracy on a chronological hold-out period.
 
-```bash
-python japan_gaming_pipeline_new.py
-```
+**Model 2: Transformer encoder classification**
 
-### Option B (run from another folder after setting paths)
+- Uses a 60-observation look-back window, eight features and one Transformer encoder block.
+- Predicts three labels over 21 trading days: BUY for a forward log-return of at least 0.03, SELL for at most -0.03, and HOLD otherwise.
+- Uses two expanding-window chronological cross-validation (CV) folds, class weighting and regularisation.
+- Retrains on all labelled observations for the final forward signal.
+- Uses Monte Carlo dropout: repeated predictions with dropout active to show variation in model scores.
 
-Use this only if you changed `DATA_DIR` and `OUT_DIR` to the correct repository path.
+Feature scaling is fitted on training data within each evaluation split. Feature-only preparation is separate from target construction so final forecasts use the latest available observations.
 
-```bash
-python /full/path/to/japan_gaming_pipeline_new.py
-```
+The current splits do not include an explicit purge or embargo gap for overlapping forward-return labels. Adding a gap would strengthen evaluation. No transaction-cost-adjusted trading backtest is reported here.
 
----
+</details>
 
-## 7. What The Script Produces
+<details>
+<summary>All generated charts</summary>
 
-Console output includes:
+| File | Contents |
+| --- | --- |
+| [`rpt_00_pipeline.png`](rpt_00_pipeline.png) | Workflow and architecture |
+| [`rpt_m1_01_price_history.png`](rpt_m1_01_price_history.png) | Prices and trading volumes |
+| [`rpt_m1_02_predictions.png`](rpt_m1_02_predictions.png) | Predicted versus actual returns |
+| [`rpt_m1_03_residuals.png`](rpt_m1_03_residuals.png) | Forecast errors |
+| [`rpt_m1_04_loss.png`](rpt_m1_04_loss.png) | Training and validation loss |
+| [`rpt_m1_05_forecast.png`](rpt_m1_05_forecast.png) | Forward price forecasts |
+| [`rpt_m2_01_cv_accuracy.png`](rpt_m2_01_cv_accuracy.png) | Classification accuracy |
+| [`rpt_m2_02_loss_curves.png`](rpt_m2_02_loss_curves.png) | Classifier learning curves |
+| [`rpt_m2_03_confusion.png`](rpt_m2_03_confusion.png) | Correct and incorrect labels |
+| [`rpt_m2_04_probs.png`](rpt_m2_04_probs.png) | Model scores over time |
+| [`rpt_m2_05_dashboard.png`](rpt_m2_05_dashboard.png) | Combined forecast and signal dashboard |
 
-- Data loading summary
-- Training logs for both models
-- Test metrics (MAE, R², directional accuracy, CV accuracy)
-- Final forward predictions from latest date
+</details>
 
-Figures generated:
+<details>
+<summary>Reproducibility and troubleshooting</summary>
 
-- `rpt_00_pipeline.png`
-- `rpt_m1_01_price_history.png`
-- `rpt_m1_02_predictions.png`
-- `rpt_m1_03_residuals.png`
-- `rpt_m1_04_loss.png`
-- `rpt_m1_05_forecast.png`
-- `rpt_m2_01_cv_accuracy.png`
-- `rpt_m2_02_loss_curves.png`
-- `rpt_m2_03_confusion.png`
-- `rpt_m2_04_probs.png`
-- `rpt_m2_05_dashboard.png`
+**Results vary between runs.** NumPy and TensorFlow seeds are set, but random initialisation, dropout, training dynamics and hardware can still change results. The committed charts are one saved example.
 
-These are saved under `OUT_DIR` (or current folder if `OUT_DIR = ""`).
-
----
-
-## 8. Common Issues
-
-### Results are slightly different each run
-
-You may see different metrics, probabilities, and final recommendations each time you run the pipeline. This is normal for deep-learning workflows.
-
-Main reasons:
-
-- Random weight initialization and mini-batch training dynamics
-- Stochastic regularization (Dropout, SpatialDropout, GaussianNoise)
-- Monte Carlo Dropout inference in Model 2 (`training=True` over multiple passes)
-- Non-deterministic low-level math kernels (especially on GPU/parallel execution)
-
-Notes:
-
-- This script already sets TensorFlow and NumPy seeds, which improves consistency.
-- Even with seeds, exact bit-for-bit reproducibility is not always guaranteed across different hardware/OS/library versions.
-
-### TensorFlow install errors
-
-Try:
+**TensorFlow installation fails.** The script imports `tf-keras` as `tf_keras`. A version-specific installation to try is:
 
 ```bash
-pip install --upgrade pip setuptools wheel
 pip install "tensorflow==2.16.*" "tf-keras==2.16.*"
 ```
 
-### File not found for CSV
+**Data files cannot be found.** Check filenames, especially `nitendo.csv`, and the current working directory or `DATA_DIR`.
 
-- Ensure filenames exactly match: `nitendo.csv`, `sony.csv`, `capcom.csv`
-- Ensure your working directory and `DATA_DIR` align
+**Training is slow.** Lower `M1_EPOCHS` and `M2_EPOCHS` for a shorter trial. Sony also has an epoch setting in `M2_STOCK_TUNE`; final classifier retraining has a separate 30-epoch setting.
 
-### Slow training
-
-- CPU training can be slow; this is expected
-- You can lower epochs in the config for quick tests:
-  - `M1_EPOCHS`
-  - `M2_EPOCHS`
-
----
-
-## 9. Quick Start (Copy/Paste)
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-pip install numpy pandas scikit-learn matplotlib tensorflow tf-keras
-python japan_gaming_pipeline_new.py
-```
-
----
-
-## 10. Optional: Freeze Dependencies
-
-After successful setup:
+**Save package versions for a run:**
 
 ```bash
 pip freeze > requirements.txt
 ```
 
-Then later recreate with:
+**Reinstall those versions later:**
 
 ```bash
 pip install -r requirements.txt
 ```
+
+</details>
